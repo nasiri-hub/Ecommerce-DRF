@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-commerce</title>
+</head>
+<body>
+    {% block subject %}
+        This is from ...
+    {% endblock %}
+    {% block text_body %}
+        Text Body
+    {% endblock %}
+    {% block html_body %}
+        <h1>HTML Body</h1>
+        <p> Hello My name is {{ name }}
+    {% endblock %}
+</body>
+</html>

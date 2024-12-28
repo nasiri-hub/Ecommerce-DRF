@@ -1,0 +1,121 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: ./wait-for-it.sh db:5432 -- ./entrypoint.sh
+    ports:
+      - 8000:8000
+    env_file:
+      - ./.env
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    develop:
+      watch:
+        - action: rebuild
+          path: .
+          target: /app
+        - action: rebuild
+          path: ./uv.lock
+        - action: rebuild
+          path: ./pyproject.toml
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+    restart: always
+    volumes:
+      - .:/app
+  celery:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    env_file:
+      - ./.env
+    command: celery -A ecommerce worker --loglevel=info
+    depends_on:
+      - redis
+    volumes:
+      - .:/app
+  celery-beat:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    env_file:
+      - ./.env
+    command: celery -A ecommerce beat --loglevel=info
+    depends_on:
+      - redis
+    volumes:
+      - .:/app
+  flower:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    env_file:
+      - ./.env
+    command: celery -A ecommerce flower
+    depends_on:
+      - api
+      - redis
+      - celery
+    environment:
+      - DEBUG=1
+      - CELERY_BROKER=redis://redis:6379/1
+      - CELERY_BACKEND=redis://redis:6379/1
+    ports:
+      - 5555:5555
+  smtp4dev:
+    image: rnwood/smtp4dev:latest
+    env_file:
+      - ./.env
+    ports:
+      - 3000:80
+      - 25:25
+    restart: always
+  tests:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    env_file:
+      - ./.env
+    command: ./wait-for-it.sh db:5432 -- ptw
+    depends_on:
+      - redis
+      - db
+    tty: true
+    volumes:
+      - .:/app
+
+  db:
+    env_file:
+      - ./.env
+    image: postgres
+    user: postgres
+    restart: always
+    secrets:
+      - db-password
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${SQL_DATABASE}
+      - POSTGRES_PORT=${SQL_PORT}
+      - POSTGRES_USER=${SQL_USER}
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
+    expose:
+      - 5432
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+volumes:
+  db-data:
+secrets:
+  db-password:
+    file: db/password.txt
