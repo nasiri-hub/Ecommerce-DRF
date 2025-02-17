@@ -12,7 +12,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                python-version: ["3.13.1", "3.13.2"]
+                python-version: ["3.13.2"]
         
         steps:
             - name: Checkout code
@@ -39,7 +39,6 @@ jobs:
                 name: bandit-findings
                 path: bandit_report.json
 
-
     image_scan:
         name: Build Image and Run Image Scan
         runs-on: ubuntu-latest
@@ -60,7 +59,7 @@ jobs:
                 password: ${{ secrets.DOCKER_PASS }}
 
             - name: Build Docker image
-              run : docker build -f Dockerfile -t recipe:v.1 .
+              run : docker build -f Dockerfile -t ecommerce:v.1 .
               
             - name: Docker Scout Scan
               uses: docker/scout-action@b23590dc1e4d09febc00cfcbc51e9e8c0f7ee9f3
