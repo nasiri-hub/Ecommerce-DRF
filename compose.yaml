@@ -93,7 +93,7 @@ services:
   db:
     env_file:
       - ./.env
-    image: postgres
+    image: postgres:17.3
     user: postgres
     restart: always
     secrets:

@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
-ARG PYTHON_VERSION=3.13
-FROM python:${PYTHON_VERSION}
+ARG PYTHON_VERSION=3.13.2
+FROM python:${PYTHON_VERSION}-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 
@@ -18,34 +18,29 @@ RUN addgroup \
 
 RUN adduser \
     --system \
-    --disabled-password \
-    --home "/home/app" \
-    --shell "/bin/bash" \
     --uid "${UID}" \
     --ingroup app \
     app
 
 
-RUN apt update \
+RUN apt update && apt upgrade -y\
     && apt install -y --no-install-recommends \
     build-essential \
-    curl \
-    python3-venv \
+    curl python3-venv libpq5 gcc\
     && apt clean \
     && rm -rf /var/lib/apt/lists/*
 
-# RUN apt update
-RUN pip install --upgrade pip 
-RUN pip install "uv"
 
-COPY --chown=app:app requirements.txt /app/
+COPY --from=ghcr.io/astral-sh/uv:0.5.25 /uv /uvx /bin/
 
-RUN uv pip install -r requirements.txt --system
+COPY --chown=app:app pyproject.toml .
 
-RUN chown -R app:app ./
+RUN uv pip install -r pyproject.toml --system
+
+RUN chown -R app:app .
 
 USER app
 
-COPY --chown=app:app . ./
+COPY --chown=app:app . .
 
 EXPOSE 8000
