@@ -17,7 +17,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: [3.13.1, 3.13.2]
+        python-version: [3.13.2]
     
     steps:
     - name: Checkout repository
@@ -36,9 +36,6 @@ jobs:
     
     - name: Create db/password file
       run: |
-        mkdir db
-        cd db
-        touch password.txt
         echo '${{ secrets.DB_PASS }}' >> password.txt
 
     - name: Test with pytest
