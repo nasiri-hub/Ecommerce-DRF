@@ -27,9 +27,9 @@ The API supports secure user authentication, product categorization, shopping ca
 
 • **Authentication**: JSON Web Token Authentication.
 
-• **Environment Management**: Poetry.
+• **Environment Management**: uv.
 
-• **Deployment**: Docker (optional).
+• **Deployment**: Docker, CI/CD.
 
 • **Testing** : Pytest.
 
